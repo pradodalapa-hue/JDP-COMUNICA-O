@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>JDP SUPREME - KERNEL v23</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #bf953f; --blue: #00f2ff; --bg: #050505; --card: #0d0d0d; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body, html { margin: 0; padding: 0; height: 100dvh; background: var(--bg); color: white; font-family: 'Rajdhani', sans-serif; overflow: hidden; }
+
+        /* TELAS */
+        .screen { display: none; height: 100dvh; flex-direction: column; }
+        .active { display: flex; }
+
+        /* ACESSO RESTRITO */
+        .gate-box { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card { background: var(--card); border: 2px solid var(--gold); padding: 30px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 0 30px rgba(191,149,63,0.2); }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: var(--blue); text-align: center; font-size: 1.2rem; font-family: 'Orbitron'; }
+        .btn-gold { width: 100%; padding: 18px; background: var(--gold); border: none; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; color: black; transition: 0.3s; }
+        .btn-gold:disabled { background: #222; color: #555; }
+
+        /* HUB PRINCIPAL */
+        header { height: 70px; background: #000; border-bottom: 2px solid var(--gold); display: flex; align-items: center; padding: 0 15px; gap: 10px; }
+        .tab-bar { display: flex; background: #000; border-bottom: 1px solid #222; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-family: 'Orbitron'; font-size: 0.7rem; color: #555; cursor: pointer; }
+        .tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+
+        #list-container { flex: 1; overflow-y: auto; padding: 10px; }
+        .item-card { background: #111; border: 1px solid #222; padding: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 15px; border-left: 4px solid var(--blue); }
+        .item-card.group { border-left-color: var(--gold); }
+        .avatar { width: 45px; height: 45px; background: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; color: var(--gold); border: 1px solid var(--gold); }
+
+        /* CHAT */
+        #chat-screen { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: none; flex-direction: column; }
+        #chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: url('https://www.transparenttextures.com/patterns/carbon-fibre.png'); }
+        .bubble { max-width: 80%; padding: 12px; border-radius: 4px; font-size: 1rem; line-height: 1.4; position: relative; }
+        .bubble .sender { font-size: 0.6rem; color: var(--gold); display: block; margin-bottom: 4px; font-family: 'Orbitron'; }
+        .me { align-self: flex-end; background: #003335; border-right: 3px solid var(--blue); }
+        .them { align-self: flex-start; background: #1a1a1a; border-left: 3px solid var(--gold); }
+
+        .input-area { padding: 15px; background: #000; display: flex; gap: 10px; border-top: 1px solid #222; }
+        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(191,149,63,0.5); cursor: pointer; z-index: 90; }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: #0a0a0a; border: 1px solid var(--gold); padding: 20px; width: 100%; max-width: 400px; }
+    </style>
+</head>
+<body>
+
+    <!-- TELA DE ACESSO (O BLOQUEIO) -->
+    <div id="screen-access" class="screen active">
+        <div class="gate-box">
+            <div class="card" id="access-card">
+                <h2 style="font-family:'Orbitron'; color:var(--gold); margin:0 0 20px 0;">JDP KERNEL v23</h2>
+                <div id="phase-1">
+                    <input type="text" id="reg-nome" placeholder="NOME DO OPERADOR">
+                    <button class="btn-gold" onclick="solicitarAcesso()">SOLICITAR ENTRADA</button>
+                </div>
+                <div id="phase-2" style="display:none;">
+                    <p style="font-size:0.7rem; color:var(--blue);">AGUARDANDO INJEÇÃO DO SR. JOSÉ...</p>
+                    <input type="number" id="injected-code" placeholder="------" readonly>
+                    <button class="btn-gold" id="btn-ativar" disabled onclick="ativarSistema()">ATIVAR AGORA</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA PRINCIPAL (HUB) -->
+    <div id="screen-hub" class="screen">
+        <header>
+            <div class="avatar" id="my-avatar">?</div>
+            <div style="flex:1">
+                <div id="my-display-name" style="font-family:'Orbitron'; font-size:0.9rem; color:var(--gold);">---</div>
+                <div id="my-display-id" style="font-size:0.6rem; color:var(--blue);">ID: ---</div>
+            </div>
+            <button onclick="localStorage.clear(); location.reload();" style="background:none; border:none; color:red; font-size:0.6rem;">LOGOUT</button>
+        </header>
+        
+        <div class="tab-bar">
+            <div class="tab active" onclick="switchTab('chats')">CONVERSAS</div>
+            <div class="tab" onclick="switchTab('groups')">GRUPOS</div>
+        </div>
+
+        <div id="list-container"></div>
+
+        <div class="fab" onclick="abrirMenuCriacao()">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="black"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        </div>
+    </div>
+
+    <!-- TELA DE CHAT -->
+    <div id="chat-screen">
+        <header>
+            <button onclick="fecharChat()" style="background:none; border:none; color:var(--gold); font-size:1.5rem;">←</button>
+            <div style="flex:1; margin-left:10px;">
+                <div id="chat-title" style="font-family:'Orbitron'; font-size:0.9rem;">---</div>
+                <div id="chat-subtitle" style="font-size:0.6rem; color:var(--blue);">Online</div>
+            </div>
+        </header>
+        <div id="chat-msgs"></div>
+        <div class="input-area">
+            <input type="text" id="chat-input" placeholder="Mensagem industrial..." style="margin:0; text-align:left; font-size:1rem;">
+            <button class="btn-gold" onclick="enviarMensagem()" style="width:80px; padding:0;">></button>
+        </div>
+    </div>
+
+    <!-- MODAL DE CRIAÇÃO -->
+    <div class="modal" id="modal-create">
+        <div class="modal-content">
+            <h3 style="font-family:'Orbitron'; color:var(--gold); margin-top:0;">NOVA CONEXÃO</h3>
+            <button class="btn-gold" onclick="addAmigo()" style="margin-bottom:10px;">ADICIONAR OPERADOR</button>
+            <button class="btn-gold" onclick="criarGrupo()" style="background:var(--blue);">CRIAR NOVO GRUPO</button>
+            <button class="btn-gold" onclick="fecharModal()" style="background:none; color:white; margin-top:10px;">CANCELAR</button>
+        </div>
+    </div>
+
+    <script>
+        const MASTER_ID = 'JDP-MASTER-STATION-99';
+        let peer, myID, activeChat = null;
+        let contacts = JSON.parse(localStorage.getItem('jdp_contacts') || '[]');
+        let groups = JSON.parse(localStorage.getItem('jdp_groups') || '[]');
+        let history = JSON.parse(localStorage.getItem('jdp_history') || '{}');
+
+        window.onload = () => {
+            const savedID = localStorage.getItem('JDP_PERM_ID');
+            if(savedID) {
+                myID = savedID;
+                iniciarSistema();
+            }
+        };
+
+        // --- SISTEMA DE ACESSO ---
+        function solicitarAcesso() {
+            const nome = document.getElementById('reg-nome').value;
+            if(!nome) return;
+            const tempID = 'JDP-WAIT-' + Math.floor(Math.random()*9999);
+            peer = new Peer(tempID);
+            peer.on('open', () => {
+                const conn = peer.connect(MASTER_ID);
+                conn.on('open', () => {
+                    conn.send({ type: 'REQUEST', name: nome });
+                    document.getElementById('phase-1').style.display = 'none';
+                    document.getElementById('phase-2').style.display = 'block';
+                });
+                conn.on('data', data => {
+                    if(data.type === 'AUTO_FILL_CODE') {
+                        document.getElementById('injected-code').value = data.value;
+                        document.getElementById('btn-ativar').disabled = false;
+                        localStorage.setItem('TEMP_NAME', nome);
+                    }
+                });
+            });
+        }
+
+        function ativarSistema() {
+            const nome = localStorage.getItem('TEMP_NAME');
+            myID = `JDP-${nome.toUpperCase()}-${Math.random().toString(36).substr(2,4).toUpperCase()}`;
+            localStorage.setItem('JDP_PERM_ID', myID);
+            location.reload();
+        }
+
+        // --- CORE DO SISTEMA ---
+        function iniciarSistema() {
+            document.getElementById('screen-access').classList.remove('active');
+            document.getElementById('screen-hub').classList.add('active');
+            document.getElementById('my-display-name').innerText = myID.split('-')[1];
+            document.getElementById('my-display-id').innerText = myID;
+            document.getElementById('my-avatar').innerText = myID.split('-')[1][0];
+
+            peer = new Peer(myID);
+            peer.on('connection', conn => {
+                conn.on('data', data => processarEntrada(data, conn.peer));
+            });
+
+            renderList('chats');
+        }
+
+        function processarEntrada(data, fromID) {
+            if(data.type === 'PRIVATE') {
+                salvarMensagem(fromID, data.text, 'them', data.senderName);
+            } else if(data.type === 'GROUP_MSG') {
+                if(!groups.find(g => g.id === data.groupId)) {
+                    groups.push({ id: data.groupId, name: data.groupName, members: data.members });
+                    localStorage.setItem('jdp_groups', JSON.stringify(groups));
+                }
+                salvarMensagem(data.groupId, data.text, 'them', data.senderName);
+            }
+            if(activeChat && (activeChat.id === fromID || activeChat.id === data.groupId)) renderMessages();
+            renderList(activeChat ? 'chats' : 'chats');
+        }
+
+        // --- CHAT E GRUPOS ---
+        function addAmigo() {
+            const id = prompt("Cole o ID do Operador:");
+            if(id && id.startsWith('JDP-') && id !== myID) {
+                if(!contacts.includes(id)) {
+                    contacts.push(id);
+                    localStorage.setItem('jdp_contacts', JSON.stringify(contacts));
+                    renderList('chats');
+                }
+            }
+            fecharModal();
+        }
+
+        function criarGrupo() {
+            const nome = prompt("Nome do Grupo Industrial:");
+            if(!nome) return;
+            const gID = 'GROUP-' + Math.random().toString(36).substr(2,6).toUpperCase();
+            const gMembers = [myID, ...contacts]; // Adiciona todos os contatos atuais ao grupo
+            groups.push({ id: gID, name: nome, members: gMembers });
+            localStorage.setItem('jdp_groups', JSON.stringify(groups));
+            renderList('groups');
+            fecharModal();
+        }
+
+        function renderList(type) {
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+            
+            if(type === 'chats') {
+                contacts.forEach(id => {
+                    const div = document.createElement('div');
+                    div.className = 'item-card';
+                    div.onclick = () => abrirChat(id, id.split('-')[1], 'PRIVATE');
+                    div.innerHTML = `<div class="avatar">${id.split('-')[1][0]}</div><div><b>${id.split('-')[1]}</b><br><small>${id}</small></div>`;
+                    container.appendChild(div);
+                });
+            } else {
+                groups.forEach(g => {
+                    const div = document.createElement('div');
+                    div.className = 'item-card group';
+                    div.onclick = () => abrirChat(g.id, g.name, 'GROUP');
+                    div.innerHTML = `<div class="avatar">G</div><div><b>${g.name}</b><br><small>${g.members.length} MEMBROS</small></div>`;
+                    container.appendChild(div);
+                });
+            }
+        }
+
+        function abrirChat(id, name, type) {
+            activeChat = { id, name, type };
+            document.getElementById('chat-screen').style.display = 'flex';
+            document.getElementById('chat-title').innerText = name;
+            document.getElementById('chat-subtitle').innerText = type === 'GROUP' ? 'Grupo Industrial' : id;
+            renderMessages();
+        }
+
+        function enviarMensagem() {
+            const input = document.getElementById('chat-input');
+            if(!input.value) return;
+            const texto = input.value;
+            const meuNome = myID.split('-')[1];
+
+            if(activeChat.type === 'PRIVATE') {
+                const conn = peer.connect(activeChat.id);
+                conn.on('open', () => {
+                    conn.send({ type: 'PRIVATE', text: texto, senderName: meuNome });
+                    salvarMensagem(activeChat.id, texto, 'me', meuNome);
+                    renderMessages();
+                });
+            } else {
+                // Lógica de Grupo: Envia para todos os membros
+                const grupo = groups.find(g => g.id === activeChat.id);
+                grupo.members.forEach(mID => {
+                    if(mID !== myID) {
+                        const conn = peer.connect(mID);
+                        conn.on('open', () => {
+                            conn.send({ 
+                                type: 'GROUP_MSG', 
+                                groupId: grupo.id, 
+                                groupName: grupo.name, 
+                                members: grupo.members,
+                                text: texto, 
+                                senderName: meuNome 
+                            });
+                        });
+                    }
+                });
+                salvarMensagem(activeChat.id, texto, 'me', meuNome);
+                renderMessages();
+            }
+            input.value = '';
+        }
+
+        function salvarMensagem(chatId, text, side, senderName) {
+            if(!history[chatId]) history[chatId] = [];
+            history[chatId].push({ side, text, senderName, time: new Date().toLocaleTimeString() });
+            localStorage.setItem('jdp_history', JSON.stringify(history));
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('chat-msgs');
+            container.innerHTML = '';
+            (history[activeChat.id] || []).forEach(m => {
+                const div = document.createElement('div');
+                div.className = `bubble ${m.side}`;
+                div.innerHTML = `<span class="sender">${m.senderName}</span>${m.text}`;
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // --- UI HELPERS ---
+        function switchTab(t) {
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            event.target.classList.add('active');
+            renderList(t);
+        }
+        function abrirMenuCriacao() { document.getElementById('modal-create').style.display = 'flex'; }
+        function fecharModal() { document.getElementById('modal-create').style.display = 'none'; }
+        function fecharChat() { document.getElementById('chat-screen').style.display = 'none'; activeChat = null; }
+    </script>
+</body>
+</html>
