@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>JDP MASTER - COMANDO SUPREMO</title>
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #bf953f; --blue: #00f2ff; --bg: #050505; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Rajdhani', sans-serif; display: grid; grid-template-columns: 350px 1fr; height: 100vh; overflow: hidden; }
+        
+        .sidebar { background: #0a0a0a; border-right: 2px solid var(--gold); padding: 20px; box-shadow: 10px 0 20px rgba(0,0,0,0.5); }
+        .user-card { 
+            background: #111; border: 1px solid #333; padding: 15px; margin-bottom: 10px; cursor: pointer;
+            border-left: 5px solid var(--blue); transition: 0.3s; position: relative;
+        }
+        .user-card.active { border-left-color: var(--gold); background: #1a1a1a; transform: scale(1.02); }
+        .user-card .status-dot { position: absolute; right: 10px; top: 10px; width: 10px; height: 10px; background: #0f0; border-radius: 50%; box-shadow: 0 0 10px #0f0; }
+
+        .main-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center; }
+        .code-display { font-family: 'Orbitron'; font-size: 6rem; color: var(--gold); margin: 20px 0; text-shadow: 0 0 30px rgba(191,149,63,0.5); letter-spacing: 10px; }
+        
+        .btn-master {
+            padding: 25px 80px; background: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728); color: black; 
+            font-family: 'Orbitron'; font-weight: bold; border: none; cursor: pointer; font-size: 1.2rem;
+            clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%); transition: 0.3s;
+        }
+        .btn-master:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(191,149,63,0.4); }
+        .btn-master:disabled { background: #333; color: #666; cursor: not-allowed; clip-path: none; }
+
+        #log { position: absolute; bottom: 0; width: 100%; height: 100px; background: rgba(0,0,0,0.9); font-family: monospace; font-size: 0.8rem; color: var(--blue); padding: 10px; overflow-y: auto; border-top: 1px solid #222; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2 style="font-family:'Orbitron'; color:var(--gold); text-align:center; border-bottom:1px solid #333; padding-bottom:10px;">TERMINAL JDP</h2>
+        <div id="user-list">
+            <p style="text-align:center; color:#555; margin-top:20px;">Aguardando sinal de rádio...</p>
+        </div>
+    </div>
+
+    <div class="main-panel">
+        <div style="color:var(--blue); font-family:'Orbitron'; margin-bottom:10px;">ESTAÇÃO DE COMANDO ATIVA</div>
+        <h1 id="target-name" style="font-family:'Orbitron'; font-size:1.5rem;">SELECIONE UM OPERADOR</h1>
+        
+        <div class="code-display" id="code-out">------</div>
+        
+        <button class="btn-master" id="btn-send" onclick="enviarCodigoAutomatico()" disabled>INJETAR CÓDIGO REMOTAMENTE</button>
+
+        <div id="log"></div>
+    </div>
+
+    <script>
+        let peer;
+        let connections = {};
+        let selectedId = null;
+        const MASTER_ID = 'JDP-MASTER-STATION-99';
+
+        function init() {
+            peer = new Peer(MASTER_ID);
+            peer.on('open', () => log("SISTEMA PRONTO. ID: " + MASTER_ID));
+            
+            peer.on('connection', conn => {
+                conn.on('open', () => {
+                    connections[conn.peer] = conn;
+                    log("CONEXÃO ESTABELECIDA: " + conn.peer);
+                    
+                    conn.on('data', data => {
+                        if(data.type === 'REQUEST') {
+                            addUser(data.name, conn.peer);
+                        }
+                    });
+                });
+                
+                conn.on('close', () => {
+                    log("CONEXÃO PERDIDA: " + conn.peer);
+                    document.getElementById('card-' + conn.peer)?.remove();
+                });
+            });
+        }
+
+        function addUser(name, id) {
+            const list = document.getElementById('user-list');
+            if(list.querySelector('p')) list.innerHTML = '';
+            
+            const div = document.createElement('div');
+            div.className = 'user-card';
+            div.id = 'card-' + id;
+            div.innerHTML = `<div class="status-dot"></div><strong>${name.toUpperCase()}</strong><br><small>${id}</small>`;
+            div.onclick = () => {
+                selectedId = id;
+                document.querySelectorAll('.user-card').forEach(c => c.classList.remove('active'));
+                div.classList.add('active');
+                document.getElementById('target-name').innerText = "OPERADOR: " + name.toUpperCase();
+                document.getElementById('btn-send').disabled = false;
+            };
+            list.appendChild(div);
+        }
+
+        function enviarCodigoAutomatico() {
+            if(!selectedId || !connections[selectedId]) return;
+            
+            const code = Math.floor(100000 + Math.random() * 900000);
+            document.getElementById('code-out').innerText = code;
+            
+            // Envia o código para o usuário
+            connections[selectedId].send({
+                type: 'AUTO_FILL_CODE',
+                value: code
+            });
+            
+            log("CÓDIGO " + code + " INJETADO NO DISPOSITIVO " + selectedId);
+        }
+
+        function log(m) {
+            const l = document.getElementById('log');
+            l.innerHTML += `> ${m}<br>`;
+            l.scrollTop = l.scrollHeight;
+        }
+
+        init();
+    </script>
+</body>
+</html>
