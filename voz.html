@@ -3,226 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JDP CLIENT - SUPREME v22</title>
+    <title>JDP SECURE - KERNEL v26</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #bf953f; --blue: #00f2ff; --bg: #050505; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { --gold: #bf953f; --blue: #00f2ff; --bg: #050505; --card: #0d0d0d; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body, html { margin: 0; padding: 0; height: 100dvh; background: var(--bg); color: white; font-family: 'Rajdhani', sans-serif; overflow: hidden; }
 
-        .screen { display: none; height: 100dvh; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        /* TELAS */
+        .screen { display: none; height: 100dvh; flex-direction: column; }
         .active { display: flex; }
 
-        .card { background: #0a0a0a; border: 2px solid var(--gold); padding: 30px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 0 30px rgba(191,149,63,0.2); }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: var(--blue); text-align: center; font-size: 1.2rem; font-family: 'Orbitron'; }
-        button { width: 100%; padding: 18px; background: var(--gold); border: none; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; color: black; }
-        button:disabled { background: #222; color: #555; cursor: not-allowed; }
-
-        /* STATUS LOG */
-        #status-bar { position: fixed; top: 0; width: 100%; padding: 5px; font-size: 0.6rem; text-align: center; background: rgba(0,0,0,0.8); color: var(--blue); font-family: monospace; z-index: 1000; }
-
-        /* INTERFACE WHATSAPP */
-        #main-hub { display: none; flex-direction: column; height: 100dvh; width: 100%; }
-        header { height: 60px; background: #000; border-bottom: 2px solid var(--gold); display: flex; align-items: center; padding: 0 15px; justify-content: space-between; }
-        #contact-list { flex: 1; overflow-y: auto; padding: 10px; }
-        .contact-item { background: #0d0d0d; border: 1px solid #1a1a1a; padding: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 15px; }
+        /* LOGIN / CADASTRO */
+        .gate-box { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; background: radial-gradient(circle, #111 0%, #000 100%); }
+        .card { background: var(--card); border: 2px solid var(--gold); padding: 30px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 0 40px rgba(0,0,0,1); border-radius: 8px; }
+        input { width: 100%; padding: 15px; margin: 8px 0; background: #000; border: 1px solid #333; color: var(--blue); text-align: center; font-size: 1.1rem; font-family: 'Rajdhani'; border-radius: 4px; }
+        input:focus { border-color: var(--gold); }
+        .btn-gold { width: 100%; padding: 18px; background: var(--gold); border: none; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; color: black; transition: 0.3s; border-radius: 4px; margin-top: 10px; }
+        .btn-gold:active { transform: scale(0.98); }
         
-        #chat-window { display: none; position: fixed; inset: 0; background: var(--bg); flex-direction: column; z-index: 200; }
-        #chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; padding: 10px; border-radius: 4px; }
-        .msg.me { align-self: flex-end; background: #003335; border-right: 3px solid var(--blue); }
-        .msg.them { align-self: flex-start; background: #1a1a1a; border-left: 3px solid var(--gold); }
+        /* HUB */
+        header { height: 70px; background: #000; border-bottom: 2px solid var(--gold); display: flex; align-items: center; padding: 0 15px; gap: 10px; }
+        .avatar { width: 45px; height: 45px; background: #111; border: 1px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; color: var(--gold); }
         
-        .input-area { padding: 10px; background: #000; display: flex; gap: 10px; }
-        .fab { position: fixed; bottom: 20px; right: 20px; width: 55px; height: 55px; background: var(--blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: black; font-size: 2rem; font-weight: bold; cursor: pointer; }
+        .tab-bar { display: flex; background: #000; border-bottom: 1px solid #222; }
+        .tab { flex: 1; padding: 15px; text-align: center; font-family: 'Orbitron'; font-size: 0.7rem; color: #555; cursor: pointer; }
+        .tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+
+        #list-container { flex: 1; overflow-y: auto; padding: 10px; }
+        .item-card { background: #0d0d0d; border: 1px solid #222; padding: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 15px; border-left: 4px solid var(--blue); }
+
+        /* CHAT */
+        #chat-screen { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: none; flex-direction: column; }
+        #chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 80%; padding: 12px; border-radius: 4px; font-size: 1rem; }
+        .me { align-self: flex-end; background: #003335; border-right: 3px solid var(--blue); }
+        .them { align-self: flex-start; background: #1a1a1a; border-left: 3px solid var(--gold); }
+
+        .input-area { padding: 15px; background: #000; display: flex; gap: 10px; border-top: 1px solid #222; }
+        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(191,149,63,0.5); cursor: pointer; z-index: 90; }
     </style>
 </head>
 <body>
 
-    <div id="status-bar">SISTEMA INICIALIZANDO...</div>
+    <!-- TELA DE LOGIN / ACESSO -->
+    <div id="screen-auth" class="screen active">
+        <div class="gate-box">
+            <div class="card">
+                <h2 style="font-family:'Orbitron'; color:var(--gold); margin-bottom:20px;">JDP SECURITY</h2>
+                
+                <div id="auth-ui">
+                    <input type="text" id="auth-user" placeholder="USUÁRIO">
+                    <input type="password" id="auth-pass" placeholder="SENHA">
+                    
+                    <button class="btn-gold" id="btn-login" onclick="tentarLogin()">ENTRAR NO SISTEMA</button>
+                    <p style="font-size:0.7rem; color:#555; margin:15px 0;">OU</p>
+                    <button class="btn-gold" style="background:none; color:var(--blue); border:1px solid var(--blue);" onclick="mostrarCadastro()">SOLICITAR NOVO CADASTRO</button>
+                </div>
 
-    <!-- TELA 1: SOLICITAÇÃO -->
-    <div id="step1" class="screen active">
-        <div class="card">
-            <h2 style="font-family:'Orbitron'; color:var(--gold);">JDP INDUSTRIAL</h2>
-            <input type="text" id="nome-op" placeholder="NOME DO OPERADOR">
-            <button id="btn-solicitar" onclick="conectarAoMaster()">SOLICITAR ACESSO</button>
+                <div id="reg-ui" style="display:none;">
+                    <p style="color:var(--blue); font-size:0.8rem;">CADASTRO DE NOVO OPERADOR</p>
+                    <input type="text" id="reg-nome" placeholder="NOME COMPLETO">
+                    <input type="password" id="reg-pass" placeholder="CRIE UMA SENHA">
+                    <button class="btn-gold" onclick="solicitarCadastro()">ENVIAR PARA O MASTER</button>
+                    <button class="btn-gold" style="background:none; color:white;" onclick="location.reload()">VOLTAR</button>
+                </div>
+
+                <div id="wait-ui" style="display:none;">
+                    <p style="color:var(--gold); font-family:'Orbitron';">AGUARDANDO LIBERAÇÃO...</p>
+                    <div style="font-size:0.7rem; color:#555;">O Sr. José precisa autorizar seu acesso no terminal Master.</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- TELA 2: VALIDAÇÃO -->
-    <div id="step2" class="screen">
-        <div class="card">
-            <h2 style="font-family:'Orbitron'; color:var(--gold);">VALIDAÇÃO</h2>
-            <p style="font-size:0.7rem; color:#888;">AGUARDANDO INJEÇÃO DO SR. JOSÉ...</p>
-            <input type="number" id="input-code" placeholder="------" readonly>
-            <button id="btn-liberar" disabled onclick="finalizarAtivacao()">AGUARDANDO...</button>
+    <!-- HUB PRINCIPAL -->
+    <div id="screen-hub" class="screen">
+        <header>
+            <div class="avatar" id="my-avatar">?</div>
+            <div style="flex:1">
+                <div id="my-display-name" style="font-family:'Orbitron'; font-size:0.9rem; color:var(--gold);">---</div>
+                <div id="my-display-id" style="font-size:0.6rem; color:var(--blue);">ID: ---</div>
+            </div>
+            <button onclick="location.reload()" style="background:none; border:1px solid red; color:red; font-size:0.6rem; padding:5px;">SAIR</button>
+        </header>
+        
+        <div class="tab-bar">
+            <div class="tab active" id="tab-chats" onclick="switchTab('chats')">OPERADORES</div>
+            <div class="tab" id="tab-groups" onclick="switchTab('groups')">GRUPOS</div>
+        </div>
+
+        <div id="list-container"></div>
+
+        <div class="fab" onclick="syncComMaster()">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="black"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
         </div>
     </div>
 
-    <!-- TELA 3: HUB (WHATSAPP) -->
-    <div id="main-hub">
+    <!-- TELA DE CHAT -->
+    <div id="chat-screen">
         <header>
-            <div style="font-family:'Orbitron'; font-size:0.8rem; color:var(--gold);" id="display-user">OPERADOR</div>
-            <button onclick="localStorage.clear(); location.reload();" style="background:none; border:none; color:red; font-size:0.6rem;">LOGOUT</button>
+            <button onclick="fecharChat()" style="background:none; border:none; color:var(--gold); font-size:1.5rem;">←</button>
+            <div style="flex:1; margin-left:10px;">
+                <div id="chat-title" style="font-family:'Orbitron'; font-size:0.9rem;">---</div>
+            </div>
         </header>
-        <div id="contact-list"></div>
-        <div class="fab" onclick="addAmigo()">+</div>
-    </div>
-
-    <!-- JANELA DE CHAT -->
-    <div id="chat-window">
-        <header>
-            <button onclick="fecharChat()" style="background:none; border:none; color:var(--gold); font-size:1.2rem;">← VOLTAR</button>
-            <span id="chat-target" style="font-family:'Orbitron'; font-size:0.8rem;">---</span>
-        </header>
-        <div id="chat-messages"></div>
+        <div id="chat-msgs"></div>
         <div class="input-area">
-            <input type="text" id="msg-input" placeholder="Mensagem..." style="margin:0; text-align:left;">
-            <button onclick="enviarMensagem()" style="width:80px;">></button>
+            <input type="text" id="chat-input" placeholder="Mensagem...">
+            <button class="btn-gold" onclick="enviarMensagem()" style="width:70px; margin:0;">></button>
         </div>
     </div>
 
     <script>
         const MASTER_ID = 'JDP-MASTER-STATION-99';
-        let peer, conn, myID, activeChatID;
-        let contatos = JSON.parse(localStorage.getItem('jdp_contatos') || '[]');
-        let mensagens = JSON.parse(localStorage.getItem('jdp_msgs') || '{}');
+        let peer, myID, activeChat = null;
+        let db = { contacts: [], groups: [], history: {} };
 
-        function setStatus(msg) { document.getElementById('status-bar').innerText = msg; }
+        // --- SEGURANÇA ---
+        async function hashPassword(password) {
+            const msgUint8 = new TextEncoder().encode(password);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
-        window.onload = () => {
-            const salvo = localStorage.getItem('JDP_PERM_ID');
-            if(salvo) {
-                myID = salvo;
-                iniciarHub();
-            } else {
-                setStatus("PRONTO PARA SOLICITAÇÃO");
-            }
-        };
+        function mostrarCadastro() {
+            document.getElementById('auth-ui').style.display = 'none';
+            document.getElementById('reg-ui').style.display = 'block';
+        }
 
-        // --- FASE DE ACESSO ---
-        function conectarAoMaster() {
-            const nome = document.getElementById('nome-op').value;
-            if(!nome) return alert("Insira seu nome");
+        async function solicitarCadastro() {
+            const nome = document.getElementById('reg-nome').value;
+            const pass = document.getElementById('reg-pass').value;
+            if(!nome || !pass) return alert("Preencha todos os campos");
 
-            setStatus("CRIANDO IDENTIDADE TEMPORÁRIA...");
-            const tempID = 'JDP-TEMP-' + Math.floor(Math.random()*9999);
+            const passHash = await hashPassword(pass);
+            const tempID = 'JDP-REG-' + Math.floor(Math.random()*9999);
+            
             peer = new Peer(tempID);
-
-            peer.on('open', (id) => {
-                setStatus("CONECTANDO AO MASTER JDP...");
-                const c = peer.connect(MASTER_ID);
-                
-                c.on('open', () => {
-                    setStatus("CONECTADO! ENVIANDO PEDIDO...");
-                    c.send({ type: 'REQUEST', name: nome });
-                    document.getElementById('step1').classList.remove('active');
-                    document.getElementById('step2').classList.add('active');
+            peer.on('open', () => {
+                const conn = peer.connect(MASTER_ID);
+                conn.on('open', () => {
+                    conn.send({ type: 'REGISTER', name: nome, hash: passHash });
+                    document.getElementById('reg-ui').style.display = 'none';
+                    document.getElementById('wait-ui').style.display = 'block';
                 });
+            });
+        }
 
-                c.on('data', data => {
-                    if(data.type === 'AUTO_FILL_CODE') {
-                        setStatus("CÓDIGO RECEBIDO!");
-                        document.getElementById('input-code').value = data.value;
-                        const btn = document.getElementById('btn-liberar');
-                        btn.disabled = false;
-                        btn.innerText = "LIBERAR ACESSO AGORA";
-                        btn.style.background = "var(--blue)";
-                        localStorage.setItem('TEMP_NAME', nome);
+        async function tentarLogin() {
+            const user = document.getElementById('auth-user').value;
+            const pass = document.getElementById('auth-pass').value;
+            if(!user || !pass) return alert("Dados incompletos");
+
+            const passHash = await hashPassword(pass);
+            const tempID = 'JDP-LOGIN-' + Math.floor(Math.random()*9999);
+            
+            peer = new Peer(tempID);
+            peer.on('open', () => {
+                const conn = peer.connect(MASTER_ID);
+                conn.on('open', () => {
+                    conn.send({ type: 'LOGIN', user: user, hash: passHash });
+                });
+                conn.on('data', data => {
+                    if(data.type === 'LOGIN_SUCCESS') {
+                        myID = data.peerID;
+                        localStorage.setItem('JDP_MY_ID', myID);
+                        iniciarSistema();
+                    } else if(data.type === 'LOGIN_FAIL') {
+                        alert("USUÁRIO OU SENHA INCORRETOS.");
+                        location.reload();
                     }
                 });
-
-                c.on('error', () => setStatus("ERRO: MASTER OFFLINE"));
             });
         }
 
-        function finalizarAtivacao() {
-            const nome = localStorage.getItem('TEMP_NAME');
-            myID = "JDP-" + nome.toUpperCase() + "-" + Math.random().toString(36).substr(2,4).toUpperCase();
-            localStorage.setItem('JDP_PERM_ID', myID);
-            location.reload();
-        }
-
-        // --- FASE HUB (WHATSAPP) ---
-        function iniciarHub() {
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('step2').style.display = 'none';
-            document.getElementById('main-hub').style.display = 'flex';
-            document.getElementById('display-user').innerText = myID;
-            setStatus("SISTEMA ONLINE - ID: " + myID);
+        // --- CORE ---
+        function iniciarSistema() {
+            document.getElementById('screen-auth').classList.remove('active');
+            document.getElementById('screen-hub').classList.add('active');
             
-            renderContatos();
+            // Carrega histórico local
+            db.history = JSON.parse(localStorage.getItem('jdp_hist_' + myID) || '{}');
+            
+            document.getElementById('my-display-name').innerText = myID.split('-')[1];
+            document.getElementById('my-display-id').innerText = myID;
+            document.getElementById('my-avatar').innerText = myID.split('-')[1][0];
 
+            if(peer) peer.destroy();
             peer = new Peer(myID);
-            peer.on('connection', c => {
-                c.on('data', data => {
-                    salvarMsg(c.peer, data.text, 'them');
-                    if(activeChatID === c.peer) renderMsgs();
+
+            peer.on('open', () => syncComMaster());
+            peer.on('connection', conn => {
+                conn.on('data', data => {
+                    if(data.type === 'DIRECTORY_SYNC') {
+                        db.contacts = data.list.filter(c => c.id !== myID);
+                        renderList('chats');
+                    } else {
+                        receberMensagem(data, conn.peer);
+                    }
                 });
             });
         }
 
-        function addAmigo() {
-            const id = prompt("ID DO AMIGO (JDP-XXXX-XXXX):");
-            if(id && id.startsWith('JDP-') && id !== myID) {
-                if(!contatos.includes(id)) {
-                    contatos.push(id);
-                    localStorage.setItem('jdp_contatos', JSON.stringify(contatos));
-                    renderContatos();
-                }
-            }
-        }
-
-        function renderContatos() {
-            const list = document.getElementById('contact-list');
-            list.innerHTML = '';
-            contatos.forEach(id => {
-                const div = document.createElement('div');
-                div.className = 'contact-item';
-                div.onclick = () => abrirChat(id);
-                div.innerHTML = `<b>${id.split('-')[1]}</b><br><small>${id}</small>`;
-                list.appendChild(div);
+        function syncComMaster() {
+            const conn = peer.connect(MASTER_ID);
+            conn.on('open', () => {
+                conn.send({ type: 'SYNC_ME', id: myID, name: myID.split('-')[1] });
             });
         }
 
-        function abrirChat(id) {
-            activeChatID = id;
-            document.getElementById('chat-window').style.display = 'flex';
-            document.getElementById('chat-target').innerText = id;
-            renderMsgs();
-            conn = peer.connect(id);
+        function receberMensagem(data, fromID) {
+            const chatId = data.groupId || fromID;
+            if(!db.history[chatId]) db.history[chatId] = [];
+            db.history[chatId].push({ side: 'them', text: data.text, sender: data.senderName });
+            localStorage.setItem('jdp_hist_' + myID, JSON.stringify(db.history));
+            if(activeChat && activeChat.id === chatId) renderMessages();
         }
 
         function enviarMensagem() {
-            const input = document.getElementById('msg-input');
+            const input = document.getElementById('chat-input');
             if(!input.value) return;
-            if(conn && conn.open) conn.send({ text: input.value });
-            salvarMsg(activeChatID, input.value, 'me');
-            renderMsgs();
-            input.value = '';
-        }
+            const texto = input.value;
+            const meuNome = myID.split('-')[1];
 
-        function salvarMsg(pID, txt, side) {
-            if(!mensagens[pID]) mensagens[pID] = [];
-            mensagens[pID].push({ side, txt });
-            localStorage.setItem('jdp_msgs', JSON.stringify(mensagens));
-        }
-
-        function renderMsgs() {
-            const flow = document.getElementById('chat-messages');
-            flow.innerHTML = '';
-            (mensagens[activeChatID] || []).forEach(m => {
-                const d = document.createElement('div');
-                d.className = `msg ${m.side}`;
-                d.innerText = m.txt;
-                flow.appendChild(d);
+            const conn = peer.connect(activeChat.id);
+            conn.on('open', () => {
+                conn.send({ type: 'MSG', text: texto, senderName: meuNome });
+                if(!db.history[activeChat.id]) db.history[activeChat.id] = [];
+                db.history[activeChat.id].push({ side: 'me', text: texto, sender: meuNome });
+                localStorage.setItem('jdp_hist_' + myID, JSON.stringify(db.history));
+                renderMessages();
+                input.value = '';
             });
-            flow.scrollTop = flow.scrollHeight;
         }
 
-        function fecharChat() { document.getElementById('chat-window').style.display = 'none'; activeChatID = null; }
+        function renderList(type) {
+            const container = document.getElementById('list-container');
+            container.innerHTML = '';
+            db.contacts.forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'item-card';
+                div.onclick = () => abrirChat(c.id, c.name);
+                div.innerHTML = `<div class="avatar">${c.name[0]}</div><div><b>${c.name}</b><br><small>${c.id}</small></div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function abrirChat(id, name) {
+            activeChat = { id, name };
+            document.getElementById('chat-screen').style.display = 'flex';
+            document.getElementById('chat-title').innerText = name;
+            renderMessages();
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('chat-msgs');
+            container.innerHTML = '';
+            (db.history[activeChat.id] || []).forEach(m => {
+                const div = document.createElement('div');
+                div.className = `bubble ${m.side}`;
+                div.innerHTML = `<small style="display:block; font-size:0.6rem; color:var(--gold)">${m.sender}</small>${m.text}`;
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function fecharChat() { document.getElementById('chat-screen').style.display = 'none'; activeChat = null; }
+        function switchTab(t) { /* Implementar troca de abas se necessário */ }
     </script>
 </body>
 </html>
