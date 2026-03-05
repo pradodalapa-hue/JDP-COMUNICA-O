@@ -3,76 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JDP SECURE - KERNEL v26.1</title>
+    <title>JDP SUPREME - KERNEL v27</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #bf953f; --blue: #00f2ff; --bg: #050505; --card: #0d0d0d; }
+        :root { --gold: #bf953f; --blue: #00f2ff; --bg: #050505; --card: #0d0d0d; --red: #ff3333; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body, html { margin: 0; padding: 0; height: 100dvh; background: var(--bg); color: white; font-family: 'Rajdhani', sans-serif; overflow: hidden; }
 
+        /* TELAS */
         .screen { display: none; height: 100dvh; flex-direction: column; }
         .active { display: flex; }
 
-        /* LOGIN / CADASTRO */
+        /* AUTH UI */
         .gate-box { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; background: radial-gradient(circle, #111 0%, #000 100%); }
-        .card { background: var(--card); border: 2px solid var(--gold); padding: 30px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 0 40px rgba(0,0,0,1); border-radius: 8px; }
+        .card { background: var(--card); border: 2px solid var(--gold); padding: 30px; width: 100%; max-width: 350px; text-align: center; border-radius: 8px; box-shadow: 0 0 50px rgba(0,0,0,1); }
         input { width: 100%; padding: 15px; margin: 8px 0; background: #000; border: 1px solid #333; color: var(--blue); text-align: center; font-size: 1.1rem; font-family: 'Rajdhani'; border-radius: 4px; }
-        .btn-gold { width: 100%; padding: 18px; background: var(--gold); border: none; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; color: black; transition: 0.3s; border-radius: 4px; margin-top: 10px; }
-        
+        .btn-gold { width: 100%; padding: 15px; background: var(--gold); border: none; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; color: black; border-radius: 4px; margin-top: 10px; }
+
         /* HUB */
-        header { height: 70px; background: #000; border-bottom: 2px solid var(--gold); display: flex; align-items: center; padding: 0 15px; gap: 10px; }
-        .avatar { width: 45px; height: 45px; background: #111; border: 1px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; color: var(--gold); }
-        .tab-bar { display: flex; background: #000; border-bottom: 1px solid #222; }
-        .tab { flex: 1; padding: 15px; text-align: center; font-family: 'Orbitron'; font-size: 0.7rem; color: #555; }
-        .tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+        header { height: 70px; background: #000; border-bottom: 2px solid var(--gold); display: flex; align-items: center; padding: 0 15px; gap: 10px; z-index: 10; }
+        .avatar { width: 45px; height: 45px; background: #111; border: 1px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; color: var(--gold); font-size: 1.2rem; }
+        
+        #list-container { flex: 1; overflow-y: auto; padding: 10px; background: linear-gradient(180deg, #050505 0%, #0a0a0a 100%); }
+        .item-card { background: #0d0d0d; border: 1px solid #222; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; border-left: 4px solid var(--blue); border-radius: 4px; }
 
-        #list-container { flex: 1; overflow-y: auto; padding: 10px; }
-        .item-card { background: #0d0d0d; border: 1px solid #222; padding: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 15px; border-left: 4px solid var(--blue); }
-
-        /* CHAT */
+        /* CHAT SUPREME */
         #chat-screen { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: none; flex-direction: column; }
-        #chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { max-width: 80%; padding: 12px; border-radius: 4px; font-size: 1rem; }
-        .me { align-self: flex-end; background: #003335; border-right: 3px solid var(--blue); }
-        .them { align-self: flex-start; background: #1a1a1a; border-left: 3px solid var(--gold); }
-        .input-area { padding: 15px; background: #000; display: flex; gap: 10px; border-top: 1px solid #222; }
+        #chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px; background-image: radial-gradient(#111 1px, transparent 1px); background-size: 20px 20px; }
+        
+        .bubble { max-width: 85%; padding: 12px; border-radius: 8px; font-size: 1rem; position: relative; line-height: 1.4; }
+        .me { align-self: flex-end; background: #003335; border-right: 3px solid var(--blue); border-bottom-right-radius: 0; }
+        .them { align-self: flex-start; background: #1a1a1a; border-left: 3px solid var(--gold); border-bottom-left-radius: 0; }
+        
+        .msg-img { max-width: 100%; border-radius: 4px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.1); }
+        audio { height: 30px; width: 200px; filter: invert(1); margin-top: 5px; }
+
+        /* INPUT AREA */
+        .input-area { padding: 10px; background: #000; display: flex; align-items: center; gap: 8px; border-top: 1px solid #222; }
+        .icon-btn { background: none; border: none; color: var(--gold); font-size: 1.5rem; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; }
+        #chat-input { flex: 1; background: #111; border: 1px solid #333; padding: 12px; color: white; border-radius: 20px; text-align: left; font-size: 1rem; }
+        
+        .recording { color: var(--red); animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* CALL OVERLAY */
+        #call-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: none; flex-direction: column; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <!-- TELA DE AUTH -->
+    <!-- TELA DE AUTENTICAÇÃO -->
     <div id="screen-auth" class="screen active">
         <div class="gate-box">
             <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--gold); margin-bottom:20px;">JDP SECURITY</h2>
-                
+                <h2 style="font-family:'Orbitron'; color:var(--gold); margin-bottom:20px;">JDP SUPREME</h2>
                 <div id="auth-ui">
                     <input type="text" id="auth-user" placeholder="USUÁRIO">
                     <input type="password" id="auth-pass" placeholder="SENHA">
-                    <button class="btn-gold" onclick="tentarLogin()">ENTRAR</button>
-                    <button class="btn-gold" style="background:none; color:var(--blue); border:1px solid var(--blue);" onclick="mostrarCadastro()">NOVO CADASTRO</button>
+                    <button class="btn-gold" onclick="tentarLogin()">ENTRAR NO SISTEMA</button>
+                    <button class="btn-gold" style="background:none; color:var(--blue); border:1px solid var(--blue);" onclick="mostrarCadastro()">SOLICITAR ACESSO</button>
                 </div>
-
                 <div id="reg-ui" style="display:none;">
                     <input type="text" id="reg-nome" placeholder="NOME COMPLETO">
                     <input type="password" id="reg-pass" placeholder="CRIE UMA SENHA">
-                    <button class="btn-gold" onclick="solicitarCadastro()">SOLICITAR ACESSO</button>
+                    <button class="btn-gold" onclick="solicitarCadastro()">ENVIAR PARA O MASTER</button>
                     <button class="btn-gold" style="background:none; color:white;" onclick="location.reload()">VOLTAR</button>
                 </div>
-
                 <div id="wait-ui" style="display:none;">
-                    <p id="wait-msg" style="color:var(--gold); font-family:'Orbitron';">AGUARDANDO MASTER...</p>
+                    <p id="wait-msg" style="color:var(--gold); font-family:'Orbitron';">AGUARDANDO LIBERAÇÃO...</p>
                     <div id="code-area" style="display:none;">
-                        <div id="display-code" style="font-size:2rem; color:var(--blue); margin:10px 0; font-family:'Orbitron';">------</div>
-                        <button class="btn-gold" id="btn-finalizar">ENTRAR NO SISTEMA</button>
+                        <div id="display-code" style="font-size:2.5rem; color:var(--blue); margin:15px 0; font-family:'Orbitron';">------</div>
+                        <button class="btn-gold" onclick="location.reload()">CONCLUIR E ENTRAR</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- HUB -->
+    <!-- HUB PRINCIPAL -->
     <div id="screen-hub" class="screen">
         <header>
             <div class="avatar" id="my-avatar">?</div>
@@ -80,70 +89,69 @@
                 <div id="my-display-name" style="font-family:'Orbitron'; font-size:0.9rem; color:var(--gold);">---</div>
                 <div id="my-display-id" style="font-size:0.6rem; color:var(--blue);">ID: ---</div>
             </div>
-            <button onclick="location.reload()" style="background:none; border:1px solid red; color:red; font-size:0.6rem; padding:5px;">SAIR</button>
+            <button onclick="location.reload()" style="background:none; border:1px solid var(--red); color:var(--red); font-size:0.6rem; padding:5px; border-radius:3px;">LOGOUT</button>
         </header>
-        <div class="tab-bar"><div class="tab active">OPERADORES ATIVOS</div></div>
         <div id="list-container"></div>
     </div>
 
-    <!-- CHAT -->
+    <!-- TELA DE CHAT -->
     <div id="chat-screen">
         <header>
-            <button onclick="fecharChat()" style="background:none; border:none; color:var(--gold); font-size:1.5rem;">←</button>
-            <div id="chat-title" style="font-family:'Orbitron'; margin-left:10px;">---</div>
+            <button onclick="fecharChat()" class="icon-btn">←</button>
+            <div style="flex:1; margin-left:10px;">
+                <div id="chat-title" style="font-family:'Orbitron'; font-size:0.9rem;">---</div>
+                <div id="typing-status" style="font-size:0.6rem; color:var(--blue); height:10px;"></div>
+            </div>
+            <button onclick="iniciarChamada()" class="icon-btn">📞</button>
         </header>
         <div id="chat-msgs"></div>
         <div class="input-area">
-            <input type="text" id="chat-input" placeholder="Mensagem...">
-            <button class="btn-gold" onclick="enviarMensagem()" style="width:70px; margin:0;">></button>
+            <label class="icon-btn">
+                📷<input type="file" id="file-input" hidden accept="image/*" onchange="enviarImagem(this)">
+            </label>
+            <input type="text" id="chat-input" placeholder="Mensagem..." oninput="notificarDigitando()">
+            <button id="mic-btn" class="icon-btn" onmousedown="iniciarAudio()" onmouseup="pararAudio()" ontouchstart="iniciarAudio()" ontouchend="pararAudio()">🎤</button>
+            <button class="icon-btn" onclick="enviarTexto()" style="color:var(--blue)">➤</button>
         </div>
+    </div>
+
+    <!-- CHAMADA VOZ -->
+    <div id="call-overlay">
+        <div class="avatar" style="width:100px; height:100px; font-size:3rem; margin-bottom:20px;">📞</div>
+        <h2 id="call-name">CHAMADA EM CURSO</h2>
+        <button class="btn-gold" style="background:var(--red); width:200px;" onclick="encerrarChamada()">DESLIGAR</button>
     </div>
 
     <script>
         const MASTER_ID = 'JDP-MASTER-STATION-99';
-        let peer, myID, activeChat = null;
+        let peer, myID, activeChat = null, mediaRecorder, audioChunks = [];
         let db = { contacts: [], history: {} };
 
-        async function hashPassword(password) {
-            const msgUint8 = new TextEncoder().encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-            return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        // --- SEGURANÇA ---
+        async function hashPassword(p) {
+            const m = new TextEncoder().encode(p);
+            const h = await crypto.subtle.digest('SHA-256', m);
+            return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
-        function mostrarCadastro() {
-            document.getElementById('auth-ui').style.display = 'none';
-            document.getElementById('reg-ui').style.display = 'block';
-        }
+        function mostrarCadastro() { document.getElementById('auth-ui').style.display = 'none'; document.getElementById('reg-ui').style.display = 'block'; }
 
         async function solicitarCadastro() {
             const nome = document.getElementById('reg-nome').value;
-            const pass = document.getElementById('reg-pass').value;
-            if(!nome || !pass) return alert("Preencha tudo");
-
-            const passHash = await hashPassword(pass);
-            const tempID = 'JDP-REG-' + Math.floor(Math.random()*9999);
-            
-            peer = new Peer(tempID);
+            const pass = await hashPassword(document.getElementById('reg-pass').value);
+            peer = new Peer('JDP-TEMP-' + Math.floor(Math.random()*999));
             peer.on('open', () => {
                 const conn = peer.connect(MASTER_ID);
                 conn.on('open', () => {
-                    conn.send({ type: 'REGISTER', name: nome, hash: passHash });
+                    conn.send({ type: 'REGISTER', name: nome, hash: pass });
                     document.getElementById('reg-ui').style.display = 'none';
                     document.getElementById('wait-ui').style.display = 'block';
                 });
-
-                // ESCUTANDO O RETORNO DO MASTER
                 conn.on('data', data => {
                     if(data.type === 'AUTO_FILL_CODE') {
                         document.getElementById('wait-msg').innerText = "ACESSO LIBERADO!";
                         document.getElementById('code-area').style.display = 'block';
                         document.getElementById('display-code').innerText = data.value;
-                        
-                        // O Master agora envia o PeerID definitivo no registro também
-                        document.getElementById('btn-finalizar').onclick = () => {
-                            // Após o registro, pedimos para o usuário logar para garantir segurança
-                            location.reload();
-                        };
                     }
                 });
             });
@@ -151,28 +159,19 @@
 
         async function tentarLogin() {
             const user = document.getElementById('auth-user').value;
-            const pass = document.getElementById('auth-pass').value;
-            const passHash = await hashPassword(pass);
-            const tempID = 'JDP-LGN-' + Math.floor(Math.random()*9999);
-            
-            peer = new Peer(tempID);
+            const pass = await hashPassword(document.getElementById('auth-pass').value);
+            peer = new Peer('JDP-LGN-' + Math.floor(Math.random()*999));
             peer.on('open', () => {
                 const conn = peer.connect(MASTER_ID);
-                conn.on('open', () => {
-                    conn.send({ type: 'LOGIN', user: user, hash: passHash });
-                });
+                conn.on('open', () => conn.send({ type: 'LOGIN', user, hash: pass }));
                 conn.on('data', data => {
-                    if(data.type === 'LOGIN_SUCCESS') {
-                        myID = data.peerID;
-                        iniciarSistema();
-                    } else {
-                        alert("FALHA NA AUTENTICAÇÃO");
-                        location.reload();
-                    }
+                    if(data.type === 'LOGIN_SUCCESS') { myID = data.peerID; iniciarSistema(); }
+                    else { alert("ACESSO NEGADO"); location.reload(); }
                 });
             });
         }
 
+        // --- CORE SISTEMA ---
         function iniciarSistema() {
             document.getElementById('screen-auth').classList.remove('active');
             document.getElementById('screen-hub').classList.add('active');
@@ -182,16 +181,29 @@
 
             if(peer) peer.destroy();
             peer = new Peer(myID);
+            
             peer.on('open', () => sync());
             peer.on('connection', conn => {
                 conn.on('data', data => {
-                    if(data.type === 'DIRECTORY_SYNC') {
-                        db.contacts = data.list.filter(c => c.id !== myID);
-                        renderList();
-                    } else {
-                        receberMensagem(data, conn.peer);
-                    }
+                    if(data.type === 'DIRECTORY_SYNC') { db.contacts = data.list.filter(c => c.id !== myID); renderList(); }
+                    else if(data.type === 'TYPING') { mostrarDigitando(conn.peer); }
+                    else { receberMensagem(data, conn.peer); }
                 });
+            });
+
+            // Receber Chamada
+            peer.on('call', call => {
+                if(confirm("RECEBENDO CHAMADA DE VOZ. ATENDER?")) {
+                    navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                        call.answer(stream);
+                        document.getElementById('call-overlay').style.display = 'flex';
+                        call.on('stream', remoteStream => {
+                            const audio = new Audio();
+                            audio.srcObject = remoteStream;
+                            audio.play();
+                        });
+                    });
+                }
             });
         }
 
@@ -200,32 +212,114 @@
             conn.on('open', () => conn.send({ type: 'SYNC_ME', id: myID, name: myID.split('-')[1] }));
         }
 
+        // --- TECNOLOGIAS DE CONVERSA ---
+        function enviarTexto() {
+            const input = document.getElementById('chat-input');
+            if(!input.value) return;
+            enviarPayload({ type: 'TEXT', content: input.value });
+            input.value = '';
+        }
+
+        function enviarImagem(input) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = () => enviarPayload({ type: 'IMG', content: reader.result });
+            reader.readAsDataURL(file);
+        }
+
+        function iniciarAudio() {
+            navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/ogg' });
+                    const reader = new FileReader();
+                    reader.onload = () => enviarPayload({ type: 'AUDIO', content: reader.result });
+                    reader.readAsDataURL(blob);
+                };
+                mediaRecorder.start();
+                document.getElementById('mic-btn').classList.add('recording');
+            });
+        }
+
+        function pararAudio() {
+            if(mediaRecorder) {
+                mediaRecorder.stop();
+                document.getElementById('mic-btn').classList.remove('recording');
+            }
+        }
+
+        function notificarDigitando() {
+            const conn = peer.connect(activeChat.id);
+            conn.on('open', () => conn.send({ type: 'TYPING' }));
+        }
+
+        function enviarPayload(payload) {
+            const conn = peer.connect(activeChat.id);
+            conn.on('open', () => {
+                payload.sender = myID.split('-')[1];
+                conn.send(payload);
+                salvarNoHistorico(activeChat.id, payload, 'me');
+                renderMessages();
+            });
+        }
+
         function receberMensagem(data, fromID) {
-            if(!db.history[fromID]) db.history[fromID] = [];
-            db.history[fromID].push({ side: 'them', text: data.text, sender: data.senderName });
+            salvarNoHistorico(fromID, data, 'them');
             if(activeChat && activeChat.id === fromID) renderMessages();
         }
 
-        function enviarMensagem() {
-            const input = document.getElementById('chat-input');
-            const conn = peer.connect(activeChat.id);
-            conn.on('open', () => {
-                conn.send({ type: 'MSG', text: input.value, senderName: myID.split('-')[1] });
-                if(!db.history[activeChat.id]) db.history[activeChat.id] = [];
-                db.history[activeChat.id].push({ side: 'me', text: input.value, sender: 'EU' });
-                renderMessages();
-                input.value = '';
+        function salvarNoHistorico(chatId, data, side) {
+            if(!db.history[chatId]) db.history[chatId] = [];
+            db.history[chatId].push({ side, ...data });
+        }
+
+        function renderMessages() {
+            const container = document.getElementById('chat-msgs');
+            container.innerHTML = '';
+            (db.history[activeChat.id] || []).forEach(m => {
+                const div = document.createElement('div');
+                div.className = `bubble ${m.side}`;
+                let content = '';
+                if(m.type === 'TEXT') content = m.content;
+                if(m.type === 'IMG') content = `<img src="${m.content}" class="msg-img">`;
+                if(m.type === 'AUDIO') content = `<audio controls src="${m.content}"></audio>`;
+                
+                div.innerHTML = `<small style="display:block;font-size:0.6rem;color:var(--gold)">${m.sender || 'SISTEMA'}</small>${content}`;
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function mostrarDigitando(id) {
+            if(activeChat && activeChat.id === id) {
+                const status = document.getElementById('typing-status');
+                status.innerText = "Digitando...";
+                setTimeout(() => status.innerText = "", 2000);
+            }
+        }
+
+        function iniciarChamada() {
+            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                const call = peer.call(activeChat.id, stream);
+                document.getElementById('call-overlay').style.display = 'flex';
+                call.on('stream', remoteStream => {
+                    const audio = new Audio();
+                    audio.srcObject = remoteStream;
+                    audio.play();
+                });
             });
         }
 
         function renderList() {
             const container = document.getElementById('list-container');
-            container.innerHTML = '';
+            container.innerHTML = '<div class="section-title" style="color:var(--gold); font-size:0.7rem; margin-bottom:10px; font-family:Orbitron;">OPERADORES ONLINE</div>';
             db.contacts.forEach(c => {
                 const div = document.createElement('div');
                 div.className = 'item-card';
                 div.onclick = () => abrirChat(c.id, c.name);
-                div.innerHTML = `<div class="avatar">${c.name[0]}</div><div><b>${c.name}</b><br><small>${c.id}</small></div>`;
+                div.innerHTML = `<div class="avatar">${c.name[0]}</div><div><b>${c.name}</b><br><small style="color:#555">${c.id}</small></div>`;
                 container.appendChild(div);
             });
         }
@@ -237,20 +331,8 @@
             renderMessages();
         }
 
-        function renderMessages() {
-            const container = document.getElementById('chat-msgs');
-            container.innerHTML = '';
-            (db.history[activeChat.id] || []).forEach(m => {
-                const div = document.createElement('div');
-                div.className = `bubble ${m.side}`;
-                div.innerHTML = `<small style="display:block;font-size:0.6rem;color:var(--gold)">${m.sender}</small>${m.text}`;
-                container.appendChild(div);
-            });
-            container.scrollTop = container.scrollHeight;
-        }
-
         function fecharChat() { document.getElementById('chat-screen').style.display = 'none'; activeChat = null; }
+        function encerrarChamada() { location.reload(); }
     </script>
 </body>
 </html>
-
