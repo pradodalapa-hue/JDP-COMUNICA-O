@@ -2,310 +2,202 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>JDP SUPREME - KERNEL v24</title>
+    <title>JDP MASTER - SUPREME SECURITY v26</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #bf953f; --blue: #00f2ff; --bg: #050505; --card: #0d0d0d; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        body, html { margin: 0; padding: 0; height: 100dvh; background: var(--bg); color: white; font-family: 'Rajdhani', sans-serif; overflow: hidden; }
+        :root { --gold: #bf953f; --blue: #00f2ff; --bg: #050505; --red: #ff4444; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Rajdhani', sans-serif; display: grid; grid-template-columns: 380px 1fr; height: 100vh; overflow: hidden; }
+        
+        .sidebar { background: #0a0a0a; border-right: 2px solid var(--gold); padding: 20px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+        .section-title { font-family: 'Orbitron'; color: var(--gold); font-size: 0.8rem; border-bottom: 1px solid #333; padding-bottom: 5px; margin-top: 15px; text-transform: uppercase; }
+        
+        .user-card { 
+            background: #111; border: 1px solid #333; padding: 12px; cursor: pointer;
+            border-left: 5px solid #444; transition: 0.3s; position: relative;
+        }
+        .user-card.request { border-left-color: var(--blue); animation: pulse 2s infinite; }
+        .user-card.authorized { border-left-color: #0f0; }
+        .user-card.active { background: #1a1a1a; border-left-width: 10px; border-left-color: var(--gold); }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
-        /* TELAS */
-        .screen { display: none; height: 100dvh; flex-direction: column; }
-        .active { display: flex; }
+        .main-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; position: relative; }
+        .code-display { font-family: 'Orbitron'; font-size: 6rem; color: var(--gold); margin: 20px 0; text-shadow: 0 0 30px rgba(191,149,63,0.5); }
+        
+        .btn-master {
+            padding: 25px 60px; background: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728); color: black; 
+            font-family: 'Orbitron'; font-weight: bold; border: none; cursor: pointer; font-size: 1rem;
+            clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
+        }
+        .btn-master:disabled { background: #222; color: #555; cursor: not-allowed; clip-path: none; }
 
-        /* ACESSO RESTRITO */
-        .gate-box { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { background: var(--card); border: 2px solid var(--gold); padding: 30px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 0 30px rgba(191,149,63,0.2); }
-        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #333; color: var(--blue); text-align: center; font-size: 1.2rem; font-family: 'Orbitron'; }
-        .btn-gold { width: 100%; padding: 18px; background: var(--gold); border: none; font-family: 'Orbitron'; font-weight: bold; cursor: pointer; color: black; transition: 0.3s; }
-        .btn-gold:disabled { background: #222; color: #555; }
-
-        /* HUB PRINCIPAL */
-        header { height: 70px; background: #000; border-bottom: 2px solid var(--gold); display: flex; align-items: center; padding: 0 15px; gap: 10px; }
-        .tab-bar { display: flex; background: #000; border-bottom: 1px solid #222; }
-        .tab { flex: 1; padding: 15px; text-align: center; font-family: 'Orbitron'; font-size: 0.7rem; color: #555; cursor: pointer; }
-        .tab.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
-
-        #list-container { flex: 1; overflow-y: auto; padding: 10px; }
-        .item-card { background: #111; border: 1px solid #222; padding: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 15px; border-left: 4px solid var(--blue); position: relative; }
-        .status-dot { position: absolute; right: 15px; top: 15px; width: 8px; height: 8px; background: #0f0; border-radius: 50%; box-shadow: 0 0 10px #0f0; }
-
-        /* CHAT */
-        #chat-screen { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: none; flex-direction: column; }
-        #chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { max-width: 80%; padding: 12px; border-radius: 4px; font-size: 1rem; position: relative; }
-        .me { align-self: flex-end; background: #003335; border-right: 3px solid var(--blue); }
-        .them { align-self: flex-start; background: #1a1a1a; border-left: 3px solid var(--gold); }
-        .sender-name { font-size: 0.6rem; color: var(--gold); display: block; margin-bottom: 4px; font-family: 'Orbitron'; }
-
-        .input-area { padding: 15px; background: #000; display: flex; gap: 10px; border-top: 1px solid #222; }
-        .fab { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(191,149,63,0.5); cursor: pointer; z-index: 90; }
+        #log { position: absolute; bottom: 0; width: 100%; height: 120px; background: rgba(0,0,0,0.95); font-family: monospace; font-size: 0.75rem; color: var(--blue); padding: 10px; overflow-y: auto; border-top: 2px solid var(--gold); }
+        .badge { font-size: 0.6rem; background: var(--blue); color: black; padding: 2px 5px; border-radius: 3px; float: right; }
     </style>
 </head>
 <body>
 
-    <!-- TELA DE ACESSO -->
-    <div id="screen-access" class="screen active">
-        <div class="gate-box">
-            <div class="card">
-                <h2 style="font-family:'Orbitron'; color:var(--gold);">JDP NETWORK</h2>
-                <div id="phase-1">
-                    <input type="text" id="reg-nome" placeholder="SEU NOME">
-                    <button class="btn-gold" onclick="solicitarAcesso()">SOLICITAR ACESSO</button>
-                </div>
-                <div id="phase-2" style="display:none;">
-                    <p style="font-size:0.7rem; color:var(--blue);">AGUARDANDO VALIDAÇÃO DO SR. JOSÉ...</p>
-                    <input type="number" id="injected-code" placeholder="------" readonly>
-                    <button class="btn-gold" id="btn-ativar" disabled onclick="ativarSistema()">LIBERAR SISTEMA</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- HUB PRINCIPAL -->
-    <div id="screen-hub" class="screen">
-        <header>
-            <div id="my-avatar" style="width:40px; height:40px; background:var(--gold); border-radius:50%; color:black; display:flex; align-items:center; justify-content:center; font-weight:bold;">?</div>
-            <div style="flex:1">
-                <div id="my-display-name" style="font-family:'Orbitron'; font-size:0.8rem; color:var(--gold);">---</div>
-                <div id="my-display-id" style="font-size:0.5rem; color:var(--blue);">ID: ---</div>
-            </div>
-            <button onclick="syncComMaster()" style="background:#111; border:1px solid var(--gold); color:var(--gold); font-size:0.6rem; padding:5px;">SYNC</button>
-        </header>
+    <div class="sidebar">
+        <h2 style="font-family:'Orbitron'; color:var(--gold); text-align:center; margin:0;">JDP COMMAND</h2>
+        <div style="font-size:0.6rem; text-align:center; color:var(--blue);">SECURITY SERVER v26.0</div>
         
-        <div class="tab-bar">
-            <div class="tab active" id="tab-chats" onclick="switchTab('chats')">OPERADORES</div>
-            <div class="tab" id="tab-groups" onclick="switchTab('groups')">GRUPOS</div>
-        </div>
-
-        <div id="list-container"></div>
-
-        <div class="fab" onclick="criarGrupo()">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="black"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        </div>
+        <div class="section-title">Solicitações de Cadastro</div>
+        <div id="request-list"></div>
+        
+        <div class="section-title">Cofre de Operadores (Vault)</div>
+        <div id="authorized-list"></div>
+        
+        <button onclick="limparTudo()" style="margin-top:auto; background:none; border:1px solid var(--red); color:var(--red); cursor:pointer; font-size:0.6rem; padding:5px;">WIPE TOTAL (RESET)</button>
     </div>
 
-    <!-- CHAT -->
-    <div id="chat-screen">
-        <header>
-            <button onclick="fecharChat()" style="background:none; border:none; color:var(--gold); font-size:1.5rem;">←</button>
-            <div style="flex:1; margin-left:10px;">
-                <div id="chat-title" style="font-family:'Orbitron'; font-size:0.9rem;">---</div>
-                <div id="chat-status" style="font-size:0.6rem; color:#0f0;">ATIVO</div>
-            </div>
-        </header>
-        <div id="chat-msgs"></div>
-        <div class="input-area">
-            <input type="text" id="chat-input" placeholder="Mensagem...">
-            <button class="btn-gold" onclick="enviarMensagem()" style="width:60px;">></button>
-        </div>
+    <div class="main-panel">
+        <div id="status-header" style="color:var(--blue); font-family:'Orbitron';">SISTEMA DE SEGURANÇA ATIVO</div>
+        <h1 id="target-name" style="font-family:'Orbitron'; font-size:1.5rem; margin:10px 0;">AGUARDANDO OPERADOR</h1>
+        
+        <div class="code-display" id="code-out">------</div>
+        
+        <button class="btn-master" id="btn-send" onclick="autorizarERegistrar()" disabled>AUTORIZAR E GERAR ACESSO</button>
+
+        <div id="log"></div>
     </div>
 
     <script>
         const MASTER_ID = 'JDP-MASTER-STATION-99';
-        let peer, myID, activeChat = null;
+        let peer;
+        let connections = {};
+        let pendingData = {}; // Armazena temporariamente nome e hash antes da autorização
+        let selectedId = null;
         
-        // BANCO DE DADOS LOCAL (PERSISTÊNCIA)
-        let db = {
-            contacts: JSON.parse(localStorage.getItem('jdp_contacts') || '[]'),
-            groups: JSON.parse(localStorage.getItem('jdp_groups') || '[]'),
-            history: JSON.parse(localStorage.getItem('jdp_history') || '{}')
-        };
+        // VAULT: Banco de dados real de usuários e senhas
+        let jdpVault = JSON.parse(localStorage.getItem('jdp_vault') || '[]');
+        // DIRECTORY: Lista de contatos para o SYNC
+        let globalDirectory = JSON.parse(localStorage.getItem('jdp_directory') || '[]');
 
-        function saveDB() {
-            localStorage.setItem('jdp_contacts', JSON.stringify(db.contacts));
-            localStorage.setItem('jdp_groups', JSON.stringify(db.groups));
-            localStorage.setItem('jdp_history', JSON.stringify(db.history));
-        }
-
-        window.onload = () => {
-            const savedID = localStorage.getItem('JDP_PERM_ID');
-            if(savedID) {
-                myID = savedID;
-                iniciarSistema();
-            }
-        };
-
-        function solicitarAcesso() {
-            const nome = document.getElementById('reg-nome').value;
-            if(!nome) return;
-            const tempID = 'JDP-TEMP-' + Math.floor(Math.random()*9999);
-            peer = new Peer(tempID);
-            peer.on('open', () => {
-                const conn = peer.connect(MASTER_ID);
-                conn.on('open', () => {
-                    conn.send({ type: 'REQUEST', name: nome });
-                    document.getElementById('phase-1').style.display = 'none';
-                    document.getElementById('phase-2').style.display = 'block';
-                });
-                conn.on('data', data => {
-                    if(data.type === 'AUTO_FILL_CODE') {
-                        document.getElementById('injected-code').value = data.value;
-                        document.getElementById('btn-ativar').disabled = false;
-                        localStorage.setItem('TEMP_NAME', nome);
-                    }
-                });
-            });
-        }
-
-        function ativarSistema() {
-            const nome = localStorage.getItem('TEMP_NAME');
-            myID = `JDP-${nome.toUpperCase()}-${Math.random().toString(36).substr(2,4).toUpperCase()}`;
-            localStorage.setItem('JDP_PERM_ID', myID);
-            location.reload();
-        }
-
-        function iniciarSistema() {
-            document.getElementById('screen-access').classList.remove('active');
-            document.getElementById('screen-hub').classList.add('active');
-            document.getElementById('my-display-name').innerText = myID.split('-')[1];
-            document.getElementById('my-display-id').innerText = myID;
-            document.getElementById('my-avatar').innerText = myID.split('-')[1][0];
-
-            peer = new Peer(myID);
+        function init() {
+            peer = new Peer(MASTER_ID);
             
-            peer.on('open', () => {
-                syncComMaster(); // Puxa a agenda do Master ao ligar
+            peer.on('open', (id) => {
+                log("SERVIDOR DE SEGURANÇA ONLINE: " + id);
+                renderLists();
             });
 
             peer.on('connection', conn => {
-                conn.on('data', data => {
-                    if(data.type === 'DIRECTORY_SYNC') {
-                        // Recebe a lista global do Master
-                        data.list.forEach(contact => {
-                            if(contact.id !== myID && !db.contacts.find(c => c.id === contact.id)) {
-                                db.contacts.push(contact);
-                            }
-                        });
-                        saveDB();
-                        renderList('chats');
-                    } else {
-                        processarMensagem(data, conn.peer);
-                    }
-                });
-            });
-
-            renderList('chats');
-        }
-
-        function syncComMaster() {
-            const conn = peer.connect(MASTER_ID);
-            conn.on('open', () => {
-                conn.send({ type: 'SYNC_ME', id: myID, name: myID.split('-')[1] });
-            });
-        }
-
-        function processarMensagem(data, fromID) {
-            const chatId = data.groupId || fromID;
-            if(!db.history[chatId]) db.history[chatId] = [];
-            
-            db.history[chatId].push({
-                side: 'them',
-                text: data.text,
-                sender: data.senderName,
-                time: new Date().toLocaleTimeString()
-            });
-            
-            if(data.groupId && !db.groups.find(g => g.id === data.groupId)) {
-                db.groups.push({ id: data.groupId, name: data.groupName, members: data.members });
-            }
-
-            saveDB();
-            if(activeChat && activeChat.id === chatId) renderMessages();
-            renderList('chats');
-        }
-
-        function renderList(type) {
-            const container = document.getElementById('list-container');
-            container.innerHTML = '';
-            
-            if(type === 'chats') {
-                db.contacts.forEach(c => {
-                    const div = document.createElement('div');
-                    div.className = 'item-card';
-                    div.onclick = () => abrirChat(c.id, c.name, 'PRIVATE');
-                    div.innerHTML = `<div class="status-dot"></div><div style="width:40px; height:40px; background:#222; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--gold); border:1px solid var(--gold);">${c.name[0]}</div><div><b>${c.name}</b><br><small style="color:#555">${c.id}</small></div>`;
-                    container.appendChild(div);
-                });
-            } else {
-                db.groups.forEach(g => {
-                    const div = document.createElement('div');
-                    div.className = 'item-card';
-                    div.onclick = () => abrirChat(g.id, g.name, 'GROUP');
-                    div.innerHTML = `<div style="width:40px; height:40px; background:var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; color:black; font-weight:bold;">G</div><div><b>${g.name}</b><br><small style="color:#555">${g.members.length} MEMBROS</small></div>`;
-                    container.appendChild(div);
-                });
-            }
-        }
-
-        function abrirChat(id, name, type) {
-            activeChat = { id, name, type };
-            document.getElementById('chat-screen').style.display = 'flex';
-            document.getElementById('chat-title').innerText = name;
-            renderMessages();
-        }
-
-        function enviarMensagem() {
-            const input = document.getElementById('chat-input');
-            if(!input.value) return;
-            const texto = input.value;
-            const meuNome = myID.split('-')[1];
-
-            if(activeChat.type === 'PRIVATE') {
-                const conn = peer.connect(activeChat.id);
                 conn.on('open', () => {
-                    conn.send({ type: 'MSG', text: texto, senderName: meuNome });
-                });
-            } else {
-                const grupo = db.groups.find(g => g.id === activeChat.id);
-                grupo.members.forEach(mID => {
-                    if(mID !== myID) {
-                        const conn = peer.connect(mID);
-                        conn.on('open', () => {
-                            conn.send({ type: 'MSG', groupId: grupo.id, groupName: grupo.name, members: grupo.members, text: texto, senderName: meuNome });
-                        });
-                    }
-                });
-            }
+                    connections[conn.peer] = conn;
+                    
+                    conn.on('data', data => {
+                        // 1. NOVO CADASTRO
+                        if(data.type === 'REGISTER') {
+                            pendingData[conn.peer] = { name: data.name, hash: data.hash };
+                            addRequestUI(data.name, conn.peer);
+                            log("SOLICITAÇÃO DE CADASTRO: " + data.name);
+                        }
+                        
+                        // 2. TENTATIVA DE LOGIN
+                        if(data.type === 'LOGIN') {
+                            log("TENTATIVA DE LOGIN: " + data.user);
+                            const user = jdpVault.find(u => u.name.toLowerCase() === data.user.toLowerCase() && u.hash === data.hash);
+                            if(user) {
+                                conn.send({ type: 'LOGIN_SUCCESS', peerID: user.peerID });
+                                log("LOGIN APROVADO: " + data.user);
+                            } else {
+                                conn.send({ type: 'LOGIN_FAIL' });
+                                log("LOGIN NEGADO: " + data.user);
+                            }
+                        }
 
-            if(!db.history[activeChat.id]) db.history[activeChat.id] = [];
-            db.history[activeChat.id].push({ side: 'me', text: texto, sender: meuNome });
-            saveDB();
-            renderMessages();
-            input.value = '';
-        }
+                        // 3. SINCRONIZAÇÃO DE AGENDA
+                        if(data.type === 'SYNC_ME') {
+                            log("SYNC SOLICITADO POR: " + data.name);
+                            conn.send({ type: 'DIRECTORY_SYNC', list: globalDirectory });
+                        }
+                    });
+                });
 
-        function renderMessages() {
-            const container = document.getElementById('chat-msgs');
-            container.innerHTML = '';
-            (db.history[activeChat.id] || []).forEach(m => {
-                const div = document.createElement('div');
-                div.className = `bubble ${m.side}`;
-                div.innerHTML = `<span class="sender-name">${m.sender}</span>${m.text}`;
-                container.appendChild(div);
+                conn.on('close', () => {
+                    delete connections[conn.peer];
+                });
             });
-            container.scrollTop = container.scrollHeight;
         }
 
-        function criarGrupo() {
-            const nome = prompt("Nome do Grupo:");
-            if(!nome) return;
-            const gID = 'GRP-' + Math.random().toString(36).substr(2,5).toUpperCase();
-            const members = [myID, ...db.contacts.map(c => c.id)];
-            db.groups.push({ id: gID, name: nome, members: members });
-            saveDB();
-            renderList('groups');
+        function addRequestUI(name, id) {
+            const list = document.getElementById('request-list');
+            const div = document.createElement('div');
+            div.className = 'user-card request';
+            div.id = 'req-' + id;
+            div.innerHTML = `<span class="badge">NOVO</span><strong>${name.toUpperCase()}</strong><br><small>AGUARDANDO SENHA...</small>`;
+            div.onclick = () => selectUser(id, name, true);
+            list.appendChild(div);
         }
 
-        function switchTab(t) {
-            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + t).classList.add('active');
-            renderList(t);
+        function selectUser(id, name, isRequest) {
+            selectedId = id;
+            document.querySelectorAll('.user-card').forEach(c => c.classList.remove('active'));
+            const card = document.getElementById((isRequest ? 'req-' : 'auth-') + id);
+            if(card) card.classList.add('active');
+
+            document.getElementById('target-name').innerText = name.toUpperCase();
+            document.getElementById('btn-send').disabled = !isRequest;
         }
 
-        function fecharChat() { document.getElementById('chat-screen').style.display = 'none'; activeChat = null; }
+        function autorizarERegistrar() {
+            if(!selectedId || !connections[selectedId] || !pendingData[selectedId]) return;
+
+            const data = pendingData[selectedId];
+            const code = Math.floor(100000 + Math.random() * 900000);
+            const finalPeerID = `JDP-${data.name.toUpperCase()}-${Math.floor(1000+Math.random()*9000)}`;
+
+            // 1. Salva no Cofre (Vault)
+            jdpVault.push({ name: data.name, hash: data.hash, peerID: finalPeerID });
+            localStorage.setItem('jdp_vault', JSON.stringify(jdpVault));
+
+            // 2. Salva no Diretório de Contatos
+            globalDirectory.push({ id: finalPeerID, name: data.name });
+            localStorage.setItem('jdp_directory', JSON.stringify(globalDirectory));
+
+            // 3. Envia código de ativação
+            connections[selectedId].send({
+                type: 'AUTO_FILL_CODE',
+                value: code
+            });
+
+            document.getElementById('code-out').innerText = code;
+            log("CADASTRO CONCLUÍDO: " + data.name + " -> " + finalPeerID);
+            
+            // Limpeza UI
+            document.getElementById('req-' + selectedId)?.remove();
+            delete pendingData[selectedId];
+            renderLists();
+        }
+
+        function renderLists() {
+            const list = document.getElementById('authorized-list');
+            list.innerHTML = '';
+            jdpVault.forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'user-card authorized';
+                div.id = 'auth-' + user.peerID;
+                div.innerHTML = `<strong>${user.name.toUpperCase()}</strong><br><small>${user.peerID}</small>`;
+                div.onclick = () => selectUser(user.peerID, user.name, false);
+                list.appendChild(div);
+            });
+        }
+
+        function limparTudo() {
+            if(confirm("ATENÇÃO: Isso apagará todos os usuários e senhas. Continuar?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function log(m) {
+            const l = document.getElementById('log');
+            l.innerHTML += `> ${m}<br>`;
+            l.scrollTop = l.scrollHeight;
+        }
+
+        init();
     </script>
 </body>
-    </html>
+</html>
